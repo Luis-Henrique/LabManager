@@ -72,20 +72,10 @@ class LabRepository
 
     public bool ExistsById(int id)
     {
-        var connection = new SqliteConnection(_databaseConfig.ConnectionString);
+        using var connection = new SqliteConnection(_databaseConfig.ConnectionString);
         connection.Open();
 
-        var command = connection.CreateCommand();
-        command.CommandText = "SELECT count(id) FROM Labs WHERE id = ($id)";
-        command.Parameters.AddWithValue("$id", id);
-        
-        /*
-        var reader = command.ExecuteReader();
-        reader.Read();
-        var result = reader.GetBoolean(0);
-        */
-
-        var result = Convert.ToBoolean(command.ExecuteScalar());
+        var result = connection.ExecuteScalar<bool>("SELECT count(id) FROM Labs WHERE id = @Id;", new { Id = id });
 
         return result;
     }
