@@ -43,16 +43,9 @@ class LabRepository
         var connection = new SqliteConnection(_databaseConfig.ConnectionString);
         connection.Open();
 
-        var command = connection.CreateCommand();
-        command.CommandText = "UPDATE Labs SET number = ($number), name = ($name), block = ($block) WHERE id = ($id)";
-        command.Parameters.AddWithValue("$id", lab.Id);
-        command.Parameters.AddWithValue("$number", lab.Number);
-        command.Parameters.AddWithValue("$name", lab.Name);
-        command.Parameters.AddWithValue("$block", lab.Block);
-
-        command.ExecuteNonQuery();
+        connection.Execute("UPDATE Labs SET number = (@Number), name = (@Name), block = (@Block) WHERE id = (@Id)", lab);
+        
         connection.Close();
-
         return lab;
     }
 
@@ -72,11 +65,8 @@ class LabRepository
         var connection = new SqliteConnection(_databaseConfig.ConnectionString);
         connection.Open();
 
-        var command = connection.CreateCommand();
-        command.CommandText = "DELETE FROM Labs WHERE id = ($id)";
-        command.Parameters.AddWithValue("$id", id);
-        
-        command.ExecuteNonQuery();
+        connection.Execute("DELETE FROM Labs WHERE id = (@Id)", new { Id = id });
+
         connection.Close();
     }
 
