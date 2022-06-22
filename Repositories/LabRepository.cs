@@ -61,14 +61,8 @@ class LabRepository
         var connection = new SqliteConnection(_databaseConfig.ConnectionString);
         connection.Open();
 
-        var command = connection.CreateCommand();
-        command.CommandText = "SELECT * FROM Labs WHERE id = ($id)";
-        command.Parameters.AddWithValue("$id", id);
-        var reader = command.ExecuteReader();
-
-        reader.Read(); //uma linha só pra ler (por isso não esta no while)
-        var lab = ReaderToLab(reader); 
-
+        var lab = connection.QuerySingle<Lab>("SELECT * FROM Labs WHERE ID = (@Id)", new { Id = id });
+            
         connection.Close();
         return lab;
     }
