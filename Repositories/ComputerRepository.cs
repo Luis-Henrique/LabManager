@@ -1,6 +1,7 @@
 using LabManager.Database;
 using LabManager.Models;
 using Microsoft.Data.Sqlite;
+using Dapper;
 
 namespace LabManager.Repositories;
 
@@ -12,27 +13,28 @@ class ComputerRepository
         _databaseConfig = databaseConfig;
     }
 
-    public List<Computer> GetAll()
+    public IEnumerable<Computer> GetAll()
     {
-        var computers = new List<Computer>();
-
-        var connection = new SqliteConnection(_databaseConfig.ConnectionString);
+        using var connection = new SqliteConnection(_databaseConfig.ConnectionString);
         connection.Open();
 
-        var command = connection.CreateCommand();
-        command.CommandText = "SELECT * FROM Computers";
-        var reader = command.ExecuteReader();
-        
-        while(reader.Read())
-        {
-            var computer = ReaderToComputer(reader);
-            computers.Add(computer);
-        }
-        
-        connection.Close();
-        
+        var computers = connection.Query<Computer>("SELECT * FROM Computers");
+
         return computers;
     }
+
+    public Computer Save(Computer computer)
+    {
+        var connection = new SqliteConnection(_databaseConfig.ConnectionString);
+
+        connection.Open();
+
+        connection.Execute("INSERT INTO Computers VALUES(@Id, @Ram, @Processor)", computer);
+
+        connection.Close();
+        return computer;
+    }
+
 
     public Computer GetById(int id)
     {
@@ -48,23 +50,6 @@ class ComputerRepository
         var computer = ReaderToComputer(reader);
             
         connection.Close();
-        return computer;
-    }
-
-    public Computer Save(Computer computer)
-    {
-        var connection = new SqliteConnection(_databaseConfig.ConnectionString);
-        connection.Open();
-
-        var command = connection.CreateCommand();
-        command.CommandText = "INSERT INTO Computers VALUES($id, $ram, $processor)";
-        command.Parameters.AddWithValue("$id", computer.Id);
-        command.Parameters.AddWithValue("$ram", computer.Ram);
-        command.Parameters.AddWithValue("$processor", computer.Processor);
-
-        command.ExecuteNonQuery();
-        connection.Close();
-
         return computer;
     }
 
